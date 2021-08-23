@@ -42,6 +42,14 @@ async function tickerSearch(payload, callback) {
   }
   callback(res);
 }
+const tickerQuotes = new Set();
+async function subscribeTicker(ticker) {
+  if (tickerQuotes.has(ticker.id)) return;
+  tickerQuotes.add(ticker.id);
+  await avanza.subscribe(Avanza.QUOTES, ticker.id, (quote) => {
+    console.log("Received quote:", quote);
+  });
+}
 
 async function tickerAdd(payload, callback) {
   console.log("tickerAdd");
@@ -51,6 +59,8 @@ async function tickerAdd(payload, callback) {
 
   users[userId].tickers[payload.id] = payload;
   console.log(users[userId].tickers);
+  await subscribeTicker(payload);
+  socket.emit("ticker:add", payload);
   callback({ status: "ok" });
 }
 
@@ -60,6 +70,7 @@ async function tickerList(payload, callback) {
   console.log(userId);
 
   console.log(users[userId].tickers);
+  socket.emit("ticker:list", users[userId].tickers);
   callback(users[userId].tickers);
 }
 

@@ -25,11 +25,11 @@ const tickerSearch = async (query) => {
         return;
       }
       const results = res.hits.reduce((acc, val) => {
-        console.log(val);
+        // console.log(val);
         const items = val.topHits ? val.topHits.slice(0, 10) : [];
         return [...acc, ...items];
       }, []);
-      console.log(results);
+      //console.log(results);
       resolve(results);
     });
   });

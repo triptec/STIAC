@@ -1,5 +1,5 @@
 import Autocomplete from "react-native-autocomplete-input";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,24 +9,15 @@ import {
   Pressable,
   ScrollView,
 } from "react-native";
+import { BackendContext } from "../../Store";
 
-import { TickerList, TickerSearch } from "../api/api";
-import { TextInput } from "react-native-paper";
 const Tickers = () => {
-  const [tickers, setTickers] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    TickerList().then((res) => {
-      console.log(res);
-      setTickers(Object.values(res));
-    });
-  }, []);
+  const [backendState, backendDispatch] = useContext(BackendContext);
 
   return (
     <View style={styles.container}>
       <ScrollView>
-        {tickers.map((ticker) => {
+        {Object.values(backendState.tickers).map((ticker) => {
           return (
             <Pressable style={styles.listItem} key={ticker.id}>
               <View style={{ flex: 0.1 }}>

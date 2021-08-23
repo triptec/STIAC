@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 import Constants from "expo-constants";
-const socket = io("http://192.168.88.205:3000", { transports: ["websocket"] });
+console.log(process.env.BASE_URL);
+const socket = io(process.env.BASE_URL, { transports: ["websocket"] });
 let loggedin = false;
 socket.on("welcome", (args) => {
   console.log(args);
@@ -8,6 +9,11 @@ socket.on("welcome", (args) => {
     loggedin = true;
   });
 });
+
+async function RegisterCallbacks(callbacks) {
+  socket.on("ticker:add", callbacks["ticker:add"]);
+  socket.on("ticker:update", callbacks["ticker:update"]);
+}
 
 async function TickerSearch(query) {
   const promise = new Promise((resolve, reject) => {
@@ -48,4 +54,4 @@ async function TickerList() {
   return promise;
 }
 
-export { TickerSearch, TickerAdd, TickerList };
+export { RegisterCallbacks, TickerSearch, TickerAdd, TickerList };

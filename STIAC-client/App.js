@@ -5,6 +5,8 @@ import TickerFinder from "./src/components/TickerFinder";
 import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 import { NavigationContainer } from "@react-navigation/native";
 import { AppScreen } from "./src/screens/AppScreen";
+import Store, { BackendContext } from "./Store";
+
 const theme = {
   ...DefaultTheme,
   colors: {
@@ -16,14 +18,16 @@ const theme = {
 
 export default function App() {
   return (
-    <PaperProvider theme={theme}>
-      <NavigationContainer fallback={<Text>Loading...</Text>}>
-        <SafeAreaView style={styles.container}>
-          <AppScreen />
-          <StatusBar style="light" />
-        </SafeAreaView>
-      </NavigationContainer>
-    </PaperProvider>
+    <Store>
+      <PaperProvider theme={theme}>
+        <NavigationContainer fallback={<Text>Loading...</Text>}>
+          <SafeAreaView style={styles.container}>
+            <AppScreen />
+            <StatusBar style="light" />
+          </SafeAreaView>
+        </NavigationContainer>
+      </PaperProvider>
+    </Store>
   );
 }
 
