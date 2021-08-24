@@ -11,6 +11,7 @@ socket.on("welcome", (args) => {
 });
 
 async function RegisterCallbacks(callbacks) {
+  socket.on("ticker:list", callbacks["ticker:list"]);
   socket.on("ticker:add", callbacks["ticker:add"]);
   socket.on("ticker:update", callbacks["ticker:update"]);
 }

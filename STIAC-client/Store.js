@@ -12,12 +12,17 @@ const Store = ({ children }) => {
 
   useEffect(() => {
     RegisterCallbacks({
+      "ticker:list": (data) => {
+        console.log("ticker:list", data);
+        backendDispatch({ type: "SET_TICKERS", payload: data });
+      },
       "ticker:add": (data) => {
         console.log("ticker:add", data);
         backendDispatch({ type: "ADD_TICKER", payload: data });
       },
       "ticker:update": (data) => {
         console.log("ticker:update", data);
+        backendDispatch({ type: "UPDATE_TICKER", payload: data });
       },
     });
   }, []);

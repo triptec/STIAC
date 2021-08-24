@@ -1,0 +1,27 @@
+{
+  "tickers-<isin(US5949181045)>": {
+      "isin": "US5949181045",
+      "yahooId": "INVE-B.ST",
+      "avanzaId": "1234",
+      "displayName": "Investor B",
+      "instrumentType": "STOCK",
+      "lastPrice": "xxx",
+      "lastUpdated": "xxx"
+  },
+  "yahoo-tickers-<yahooId(INVE-B.ST)>": "US5949181045",
+  "avanza-tickers-<avanzaId(1234)>": "US5949181045",
+  "users-<userId>": {
+      "id": "1",
+      "displayName": "Andreas Franzén"
+  },
+  "lists-<listId>": {
+      "id": "1",
+      "displayName": "GG",
+      "ownerId": "<userId>"
+  },
+  "users-tickers-<userId>": ["<isin>"],
+  "users-lists-<userId>": ["<listId>", "<listId>"],
+  "lists-tickers-<listId>": ["<isin>"],
+  "lists-ro-<listId>": ["<userId>"],
+  "lists-rw-<listId>": ["<userId>"]
+}

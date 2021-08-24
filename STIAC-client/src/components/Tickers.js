@@ -1,5 +1,7 @@
 import Autocomplete from "react-native-autocomplete-input";
 import React, { useContext, useEffect, useState } from "react";
+import * as Animatable from 'react-native-animatable';
+import _sortBy from "lodash.sortby"
 import {
   StyleSheet,
   Text,
@@ -17,22 +19,20 @@ const Tickers = () => {
   return (
     <View style={styles.container}>
       <ScrollView>
-        {Object.values(backendState.tickers).map((ticker) => {
+        {_sortBy(Object.values(backendState.tickers),['displayName']).map((ticker) => {
           return (
-            <Pressable style={styles.listItem} key={ticker.id}>
+            <Pressable style={styles.listItem} key={ticker.isin}>
               <View style={{ flex: 0.1 }}>
-                <Text>{ticker.flagCode}</Text>
+                <Text>{ticker.countryCode}</Text>
               </View>
 
               <View style={{ flex: 0.7 }}>
-                <Text>{ticker.name}</Text>
-                <Text>{ticker.tickerSymbol}</Text>
+                <Text>{ticker.displayName}</Text>
+                <Text>{ticker.ticker}</Text>
               </View>
-              <View style={{ flex: 0.2 }}>
-                <Text>{ticker.changePercent.toFixed(2)}%</Text>
-                <Text>
-                  {ticker.lastPrice} {ticker.currency}
-                </Text>
+              <View key={ticker.lastPrice} style={{ flex: 0.2 }}>
+                {/*<Text>{ticker.changePercent.toFixed(2)}%</Text>*/}
+                  <Animatable.Text animation="flash">{ticker.lastPrice} {ticker.currency}</Animatable.Text>
               </View>
             </Pressable>
           );

@@ -19,18 +19,7 @@ const addTicker = (ticker) => {
 const tickerSearch = async (query) => {
   const promise = new Promise((resolve, reject) => {
     TickerSearch(query).then((res) => {
-      //console.log(res);
-      if (res.totalNumberOfHits === 0) {
-        resolve([]);
-        return;
-      }
-      const results = res.hits.reduce((acc, val) => {
-        // console.log(val);
-        const items = val.topHits ? val.topHits.slice(0, 10) : [];
-        return [...acc, ...items];
-      }, []);
-      //console.log(results);
-      resolve(results);
+      resolve(res);
     });
   });
   return promise;
@@ -46,6 +35,7 @@ const TickerFinder = () => {
   useEffect(() => {
     if (query.length === 0) return;
     tickerSearch(query).then((res) => {
+      console.log(res)
       setTickers(res);
     });
   }, [query]);
@@ -67,18 +57,18 @@ const TickerFinder = () => {
           return (
             <Pressable
               style={styles.listItem}
-              key={ticker.id}
+              key={ticker.avanzaId}
               onPress={() => TickerAdd(ticker)}
             >
               <View style={{ flex: 0.1 }}>
-                <Text>{ticker.flagCode}</Text>
+                <Text>{ticker.countryCode}</Text>
               </View>
 
               <View style={{ flex: 0.7 }}>
                 <Text>
-                  {ticker.name} {ticker.selected ? "*" : null}
+                  {ticker.displayName} {ticker.selected ? "*" : null}
                 </Text>
-                <Text>{ticker.tickerSymbol}</Text>
+                <Text>{ticker.ticker}</Text>
               </View>
               <View style={{ flex: 0.2 }}>
                 <Text>{ticker.changePercent?.toFixed(2)}%</Text>

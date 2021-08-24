@@ -2,15 +2,23 @@
   "name": "stiac-api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:server": "nodemon --watch './**/*.ts' --exec 'ts-node' index.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "avanza": "^2.0.0",
     "dotenv": "^10.0.0",
-    "socket.io": "^4.1.2"
+    "redis": "^3.1.2",
+    "socket.io": "^4.1.2",
+    "uuidv4": "^6.2.12"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.12",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.3.5"
   }
 }
