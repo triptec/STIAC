@@ -13,14 +13,18 @@ import {
 } from "react-native";
 import { BackendContext } from "../../Store";
 
-const Tickers = () => {
+const List = ({ list }) => {
   const [backendState, backendDispatch] = useContext(BackendContext);
-
   return (
     <View style={styles.container}>
       <ScrollView>
-        {_sortBy(Object.values(backendState.tickers), ["displayName"]).map(
-          (ticker) => {
+        {backendState.listsTickers[list.id] &&
+          _sortBy(
+            backendState.listsTickers[list.id].map(
+              (isin) => backendState.tickers[isin]
+            ),
+            ["displayName"]
+          ).map((ticker) => {
             return (
               <Pressable style={styles.listItem} key={ticker.isin}>
                 <View style={{ flex: 0.1 }}>
@@ -32,15 +36,14 @@ const Tickers = () => {
                   <Text>{ticker.ticker}</Text>
                 </View>
                 <View key={ticker.lastPrice} style={{ flex: 0.2 }}>
-                  <Text>{ticker.changePercent.toFixed(2)}%</Text>
+                  <Text>{ticker.changePercent?.toFixed(2)}%</Text>
                   <Animatable.Text animation="flash">
                     {ticker.lastPrice.toFixed(2)} {ticker.currency}
                   </Animatable.Text>
                 </View>
               </Pressable>
             );
-          }
-        )}
+          })}
       </ScrollView>
     </View>
   );
@@ -54,4 +57,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Tickers;
+export default List;

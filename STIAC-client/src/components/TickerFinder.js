@@ -1,5 +1,5 @@
 import Autocomplete from "react-native-autocomplete-input";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,21 +9,17 @@ import {
   Pressable,
   ScrollView,
 } from "react-native";
+import debounce from "lodash.debounce";
+import pDebounce from "p-debounce";
 
 import { TickerSearch, TickerAdd } from "../api/api";
 import { TextInput } from "react-native-paper";
+import { BackendContext } from "../../Store";
 
-const addTicker = (ticker) => {
-  tickerAdd(ticker);
-};
-const tickerSearch = async (query) => {
-  const promise = new Promise((resolve, reject) => {
-    TickerSearch(query).then((res) => {
-      resolve(res);
-    });
-  });
-  return promise;
-};
+const tickerSearch = pDebounce(async (query) => {
+  return TickerSearch(query);
+}, 300);
+
 const TickerFinder = () => {
   const [query, setQuery] = useState("");
   const [tickers, setTickers] = useState([]);
@@ -31,11 +27,12 @@ const TickerFinder = () => {
   const [selected, setSelected] = useState(null);
   const [hideResults, setHideResults] = useState(true);
   const placeholder = isLoading ? "Loading data..." : "Enter ticker query";
+  const [backendState, backendDispatch] = useContext(BackendContext);
 
   useEffect(() => {
     if (query.length === 0) return;
     tickerSearch(query).then((res) => {
-      console.log(res)
+      console.log(res);
       setTickers(res);
     });
   }, [query]);
@@ -58,7 +55,9 @@ const TickerFinder = () => {
             <Pressable
               style={styles.listItem}
               key={ticker.avanzaId}
-              onPress={() => TickerAdd(ticker)}
+              onPress={() =>
+                TickerAdd(ticker, Object.keys(backendState.lists)[0])
+              }
             >
               <View style={{ flex: 0.1 }}>
                 <Text>{ticker.countryCode}</Text>

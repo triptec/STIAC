@@ -12,8 +12,20 @@ const Store = ({ children }) => {
 
   useEffect(() => {
     RegisterCallbacks({
-      "ticker:list": (data) => {
-        console.log("ticker:list", data);
+      "liststickers:set": (data) => {
+        console.log("liststickers:set", data);
+        backendDispatch({ type: "SET_LISTS_TICKERS", payload: data });
+      },
+      "liststickers:add": (data) => {
+        console.log("liststickers:add", data);
+        backendDispatch({ type: "ADD_LISTS_TICKERS", payload: data });
+      },
+      "list:set": (data) => {
+        console.log("list:set", data);
+        backendDispatch({ type: "SET_LISTS", payload: data });
+      },
+      "ticker:set": (data) => {
+        console.log("ticker:set", data);
         backendDispatch({ type: "SET_TICKERS", payload: data });
       },
       "ticker:add": (data) => {

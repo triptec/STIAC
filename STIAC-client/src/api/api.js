@@ -11,7 +11,10 @@ socket.on("welcome", (args) => {
 });
 
 async function RegisterCallbacks(callbacks) {
-  socket.on("ticker:list", callbacks["ticker:list"]);
+  socket.on("liststickers:set", callbacks["liststickers:set"]);
+  socket.on("liststickers:add", callbacks["liststickers:add"]);
+  socket.on("list:set", callbacks["list:set"]);
+  socket.on("ticker:set", callbacks["ticker:set"]);
   socket.on("ticker:add", callbacks["ticker:add"]);
   socket.on("ticker:update", callbacks["ticker:update"]);
 }
@@ -29,9 +32,10 @@ async function TickerSearch(query) {
   return promise;
 }
 
-async function TickerAdd(ticker) {
+async function TickerAdd(ticker, listId) {
+  console.log("tickerAdd", ticker, listId);
   const promise = new Promise((resolve, reject) => {
-    socket.emit("ticker:add", ticker, (res) => {
+    socket.emit("ticker:add", ticker, listId, (res) => {
       if ("error" in res) {
         reject("error");
       } else {

@@ -1,5 +1,7 @@
 const initialBackendState = {
   tickers: {},
+  lists: {},
+  listsTickers: {},
 };
 
 const BackendStateReducer = (state, action) => {
@@ -12,20 +14,63 @@ const BackendStateReducer = (state, action) => {
         ...state,
         ...action.payload,
       };
+    case "SET_LISTS":
+      return {
+        ...state,
+        lists: action.payload,
+      };
+    case "SET_LISTS_TICKERS":
+      return {
+        ...state,
+        listsTickers: action.payload,
+      };
+    case "ADD_LISTS_TICKERS":
+      return {
+        ...state,
+        listsTickers: {
+          ...state.listsTickers,
+          [action.payload.listId]: [
+            ...state.listsTickers[action.payload.listId],
+            action.payload.isin,
+          ],
+        },
+      };
+
     case "SET_TICKERS":
       return {
         ...state,
-        tickers: action.payload,
+        tickers: Object.keys(action.payload).reduce((acc, key) => {
+          acc[key] = {
+            ...action.payload[key],
+            ["lastPrice"]: parseFloat(action.payload[key].lastPrice),
+            ["changePercent"]: parseFloat(action.payload[key].changePercent),
+          };
+          return acc;
+        }, {}),
       };
     case "ADD_TICKER":
       return {
         ...state,
-        tickers: { ...state.tickers, [action.payload.isin]: action.payload },
+        tickers: {
+          ...state.tickers,
+          [action.payload.isin]: {
+            ...action.payload,
+            ["lastPrice"]: parseFloat(action.payload.lastPrice),
+            ["changePercent"]: parseFloat(action.payload.changePercent),
+          },
+        },
       };
     case "UPDATE_TICKER":
       return {
         ...state,
-        tickers: { ...state.tickers, [action.payload.isin]: { ...state.tickers[action.payload.isin], ['lastPrice']: action.payload.lastPrice} },
+        tickers: {
+          ...state.tickers,
+          [action.payload.isin]: {
+            ...state.tickers[action.payload.isin],
+            ["lastPrice"]: parseFloat(action.payload.lastPrice),
+            ["changePercent"]: parseFloat(action.payload.changePercent),
+          },
+        },
       };
     default:
       return state;

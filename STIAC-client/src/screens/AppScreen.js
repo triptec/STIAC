@@ -2,6 +2,7 @@ import { createMaterialBottomTabNavigator } from "@react-navigation/material-bot
 import React, { useContext } from "react";
 import { TickerSearchScreen } from "./TickerSearchScreen";
 import { TickersScreen } from "./TickersScreen";
+import { ListsScreen, ListsStackScreen } from "./ListsScreen";
 const Tab = createMaterialBottomTabNavigator();
 
 export function AppScreen() {
@@ -11,6 +12,11 @@ export function AppScreen() {
         name="Search"
         component={TickerSearchScreen}
         options={{ tabBarIcon: "home", title: "Search" }}
+      />
+      <Tab.Screen
+        name="ListsStack"
+        component={ListsStackScreen}
+        options={{ tabBarIcon: "menu", title: "Lists" }}
       />
       <Tab.Screen
         name="Tickers"

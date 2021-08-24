@@ -1,5 +1,6 @@
 const dotenv = require("dotenv");
 const Avanza = require("avanza");
+const StockSocket = require("stocksocket");
 const io = require("socket.io")();
 const redis = require("redis");
 
@@ -15,10 +16,18 @@ const hgetallAsync = promisify(redisClient.hgetall).bind(redisClient);
 const hsetAsync = promisify(redisClient.hset).bind(redisClient);
 const lpushAsync = promisify(redisClient.lpush).bind(redisClient);
 const lrangeAsync = promisify(redisClient.lrange).bind(redisClient);
-import { uuid } from 'uuidv4';
-import {AvanzaInstrument, AvanzaQuote, AvanzaTicker, Ticker} from "./src/models";
+const saddAsync = promisify(redisClient.sadd).bind(redisClient);
+const smembersAsync = promisify(redisClient.smembers).bind(redisClient);
+import { uuid } from "uuidv4";
+import {
+  AvanzaInstrument,
+  AvanzaQuote,
+  AvanzaTicker,
+  Ticker,
+  YahooQuote,
+} from "./src/models";
 
-redisClient.on("error", function(error) {
+redisClient.on("error", function (error) {
   console.error(error);
 });
 
@@ -31,10 +40,10 @@ const credentials = {
 console.log(credentials);
 async function authenticate() {
   return avanza
-      .authenticate(credentials)
-      .then(() => console.log("authenticated"))
-      .catch((e) => console.log(e));
-};
+    .authenticate(credentials)
+    .then(() => console.log("authenticated"))
+    .catch((e) => console.log(e));
+}
 
 authenticate().then(console.log);
 
@@ -57,17 +66,17 @@ async function tickerSearch(payload, callback, retry) {
       const instrumentType = hit.instrumentType;
       for (const value of hit.topHits || []) {
         value["instrumentType"] = instrumentType;
-        const avanzaTicker = AvanzaTicker.fromAvanza(value)
+        const avanzaTicker = AvanzaTicker.fromAvanza(value);
         const ticker = Ticker.fromAvanzaTicker(avanzaTicker);
         tickers.push(ticker);
-        console.log(value)
+        console.log(value);
       }
     }
     callback(tickers);
   } catch (e) {
-    console.error("search")
-    console.error(e)
-    if(retry) {
+    console.error("search");
+    console.error(e);
+    if (retry) {
       console.error("Already retried, stopping");
     } else {
       await authenticate();
@@ -75,41 +84,85 @@ async function tickerSearch(payload, callback, retry) {
     }
   }
 }
-const tickerQuotes = new Set();
-async function subscribeTicker(ticker) {
-  if (tickerQuotes.has(ticker.isin)) return;
-  tickerQuotes.add(ticker.isin);
-  await avanza.subscribe(Avanza.QUOTES, ticker.avanzaId, async (quote: AvanzaQuote) => {
-    console.log("Received quote:", quote);
-    const isin = await getAsync(`avanza-tickers-${quote.orderbookId}`);
-    await hsetAsync(`tickers-${isin}`, 'lastPrice', quote.lastPrice, 'lastUpdated', quote.lastUpdated)
-    const ticker = await hgetallAsync(`tickers-${isin}`) as Ticker;
-    server.to(isin).emit('ticker:update', ticker)
-  });
+const avanzaTickerQuotes = new Set();
+const yahooTickerQuotes = new Set();
+async function subscribeTicker(ticker: Ticker) {
+  if (avanzaTickerQuotes.has(ticker.isin)) return;
+  if (yahooTickerQuotes.has(ticker.ticker)) return;
+  if (ticker.countryCode === "US") {
+    avanzaTickerQuotes.add(ticker.ticker);
+    StockSocket.addTicker(ticker.ticker, async (quote: YahooQuote) => {
+      console.log("Received quote:", quote);
+      const isin = await getAsync(`yahoo:tickers:${quote.id}`);
+      await hsetAsync(
+        `tickers:${isin}`,
+        "lastPrice",
+        quote.price,
+        "lastUpdated",
+        quote.time,
+        "changePercent",
+        quote.changePercent
+      );
+      const ticker = (await hgetallAsync(`tickers:${isin}`)) as Ticker;
+      server.to(isin).emit("ticker:update", ticker);
+    });
+  } else {
+    avanzaTickerQuotes.add(ticker.isin);
+    await avanza.subscribe(
+      Avanza.QUOTES,
+      ticker.avanzaId,
+      async (quote: AvanzaQuote) => {
+        console.log("Received quote:", quote);
+        const isin = await getAsync(`avanza:tickers:${quote.orderbookId}`);
+        await hsetAsync(
+          `tickers:${isin}`,
+          "lastPrice",
+          quote.lastPrice,
+          "lastUpdated",
+          quote.lastUpdated,
+          "changePercent",
+          quote.changePercent
+        );
+        const ticker = (await hgetallAsync(`tickers:${isin}`)) as Ticker;
+        server.to(isin).emit("ticker:update", ticker);
+      }
+    );
+  }
 }
 
-async function tickerAdd(ticker_:Ticker, callback) {
-  console.log("tickerAdd", ticker_);
+async function tickerAdd(ticker_: Ticker, listId_: any, callback) {
+  console.log("tickerAdd", ticker_, listId_);
+  if (!ticker_ || !listId_) return;
   const socket = this;
   const userId = socket.userId;
   console.log(userId);
-  const isin = await getAsync(`avanza-tickers-${ticker_.avanzaId}`)
+  const isin = await getAsync(`avanza:tickers:${ticker_.avanzaId}`);
   console.log(isin);
   let ticker;
-  if(isin) {
-    ticker = await hgetallAsync(`tickers-${isin}`) as Ticker;
+  if (isin) {
+    ticker = (await hgetallAsync(`tickers:${isin}`)) as Ticker;
   } else {
-    const instrument = await avanza.getInstrument(ticker_.instrumentType, ticker_.avanzaId) as AvanzaInstrument;
+    const instrument = (await avanza.getInstrument(
+      ticker_.instrumentType,
+      ticker_.avanzaId
+    )) as AvanzaInstrument;
     ticker = Ticker.fromAvanzaInstrument(instrument, ticker_.instrumentType);
-    await hsetAsync(`tickers-${ticker.isin}`, Object.entries(ticker).flat());
-    await setAsync(`avanza-tickers-${ticker.avanzaId}`, ticker.isin);
+    await hsetAsync(`tickers:${ticker.isin}`, Object.entries(ticker).flat());
+    await setAsync(`avanza:tickers:${ticker.avanzaId}`, ticker.isin);
+    await setAsync(`yahoo:tickers:${ticker.ticker}`, ticker.isin);
   }
-  await lpushAsync(`users-tickers-${userId}`, ticker.isin);
+  await saddAsync(`users:tickers:${userId}`, ticker.isin);
   users[userId].tickers[ticker.isin] = ticker;
   console.log(users[userId].tickers);
+
+  await saddAsync(`lists:tickers:${listId_}`, ticker.isin);
+  users[userId].listsTickers[listId_].add(ticker.isin);
+  console.log(users[userId].listsTickers);
+
   socket.join(ticker.isin);
   await subscribeTicker(ticker);
   socket.emit("ticker:add", ticker);
+  socket.emit("liststickers:add", { listId: listId_, isin: ticker.isin });
   callback({ status: "ok" });
 }
 
@@ -119,7 +172,7 @@ async function tickerList(payload, callback) {
   console.log(userId);
 
   console.log(users[userId].tickers);
-  socket.emit("ticker:list", users[userId].tickers);
+  socket.emit("ticker:set", users[userId].tickers);
   callback(users[userId].tickers);
 }
 
@@ -127,77 +180,112 @@ const users = {};
 async function login(payload, callback) {
   const socket = this;
   console.log(payload);
-  let user = await hgetallAsync(`users-${payload.id}`);
-  if(!user) {
-    user = {id: payload.id}
-    await hsetAsync(`users-${payload.id}`, Object.entries(user).flat())
+  let user = await hgetallAsync(`users:${payload.id}`);
+  if (!user) {
+    user = { id: payload.id };
+    await hsetAsync(`users:${payload.id}`, Object.entries(user).flat());
   }
   if (!users[user.id]) {
     users[user.id] = user;
   }
-  let userLists = await lrangeAsync(`user-lists-${user.id}`, 0 , -1);
-  if(!userLists || userLists.length === 0) {
+  let userLists = await smembersAsync(`users:lists:${user.id}`);
+  if (!userLists || userLists.length === 0) {
     const list = {
       id: uuid(),
       displayName: "My list",
       ownerId: user.id,
-    }
-    await hsetAsync(`lists-${list.id}`, Object.entries(list).flat());
-    await lpushAsync(`users-lists-${user.id}`, list.id);
+    };
+    await hsetAsync(`lists:${list.id}`, Object.entries(list).flat());
+    await saddAsync(`users:lists:${user.id}`, list.id);
     userLists = [list.id];
   }
-  const batch = redisClient.batch();
-  for(let lid of userLists) {
-    batch.hgetall(`lists-${lid}`);
+  let batch = redisClient.batch();
+  for (let lid of userLists) {
+    batch.hgetall(`lists:${lid}`);
   }
   const prom = new Promise((resolve, reject) => {
-    batch.exec((err, replies)=>{
+    batch.exec((err, replies) => {
       if (err) {
         reject(err);
       } else {
-        resolve(replies)
+        resolve(replies);
       }
-    })
+    });
   });
 
-  const lists = await prom;
-  user.lists = lists;
+  const lists = (await prom) as any[];
+  user.lists = lists.reduce((acc: any, list: any) => {
+    acc[list.id.toString()] = list;
+    return acc;
+  }, {});
+  console.log("lists", user.lists);
 
-  let tickerIds = await lrangeAsync(`users-tickers-${user.id}`, 0 , -1);
-  console.log('tickerIds', tickerIds);
+  batch = redisClient.batch();
+  for (let lid of userLists) {
+    batch.smembers(`lists:tickers:${lid}`);
+  }
+  const prom1 = new Promise((resolve, reject) => {
+    batch.exec((err, replies) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(replies);
+      }
+    });
+  });
+
+  const listsTickers = (await prom1) as any[];
+  user.listsTickers = listsTickers.reduce(
+    (acc: any, list: any, index: number) => {
+      acc[userLists[index]] = new Set(list);
+      return acc;
+    },
+    {}
+  );
+  console.log("listsTickers", user.listsTickers);
+
+  let tickerIds = await smembersAsync(`users:tickers:${user.id}`);
+  console.log("tickerIds", tickerIds);
   if (tickerIds) {
     const batch = redisClient.batch();
-    for(let tid of tickerIds) {
-      batch.hgetall(`tickers-${tid}`);
+    for (let tid of tickerIds) {
+      batch.hgetall(`tickers:${tid}`);
     }
     const prom = new Promise((resolve, reject) => {
-      batch.exec((err, replies)=>{
+      batch.exec((err, replies) => {
         if (err) {
           reject(err);
         } else {
-          resolve(replies)
+          resolve(replies);
         }
-      })
+      });
     });
-    const tickers = await prom as Ticker[];
-    console.log('tickers', tickers);
-    user.tickers = tickers.reduce((acc:any, ticker: Ticker) => {
-      acc[ticker.isin.toString()] = ticker
+    const tickers = (await prom) as Ticker[];
+    user.tickers = tickers.reduce((acc: any, ticker: Ticker) => {
+      acc[ticker.isin.toString()] = ticker;
       return acc;
     }, {});
+    console.log("tickers", user.tickers);
   }
-  if(!user.tickers) user.tickers = {};
+  if (!user.tickers) user.tickers = {};
   socket.userId = user.id;
   users[user.id] = { ...users[user.id], socket: socket };
 
   socket.on("ticker:search", tickerSearch);
   socket.on("ticker:add", tickerAdd);
-  socket.on("ticker:list", tickerList);
+  socket.on("ticker:set", tickerList);
 
-
-  socket.emit('ticker:list', user.tickers);
-  for( let ticker of Object.values(user.tickers) as Ticker[]) {
-    await subscribeTicker(ticker)
+  socket.emit("list:set", user.lists);
+  socket.emit("ticker:set", user.tickers);
+  socket.emit(
+    "liststickers:set",
+    Object.keys(user.listsTickers).reduce((acc, item) => {
+      acc[item] = [...user.listsTickers[item]];
+      return acc;
+    }, {})
+  );
+  for (let ticker of Object.values(user.tickers) as Ticker[]) {
+    await subscribeTicker(ticker);
     socket.join(ticker.isin);
   }
 
