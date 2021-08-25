@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+    id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    installationId   String     @unique
+    displayName      String?
+    lists            List[]     @relation(name: "ListToUser")
+    ownedLists       List[]     @relation(name: "ListToOwner")
+    tickersMeta      ListTickerMeta[]
+    createdAt        DateTime   @default(now())
+    updatedAt        DateTime   @updatedAt
+}
+
+model Ticker {
+    id               String     @id @db.Uuid
+    yahooId          String?
+    avanzaId         String?
+    ticker           String
+    displayName      String
+    instrumentType   String
+    price            Float
+    priceUpdatedAt   DateTime   @default(now())
+    currency         String
+    lists            List[]
+    tickersMeta      ListTickerMeta[]
+    createdAt        DateTime   @default(now())
+    updatedAt        DateTime   @updatedAt
+}
+
+model List {
+    id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    displayName      String
+    description      String?
+    ownerId          String     @db.Uuid
+    owner            User       @relation(name: "ListToOwner", fields: [ownerId], references: [id])
+    users            User[]     @relation(name: "ListToUser")
+    tickers          Ticker[]
+    tickersMeta      ListTickerMeta[]
+    createdAt        DateTime   @default(now())
+    updatedAt        DateTime   @updatedAt
+}
+
+model ListTickerMeta {
+    listId           String     @db.Uuid
+    list             List       @relation(fields:[listId], references: [id])
+    tickerId         String     @db.Uuid
+    ticker           Ticker     @relation(fields:[tickerId], references: [id])
+    userId           String     @db.Uuid
+    user             User       @relation(fields:[userId], references: [id])
+    gav              Float
+    shared           Float
+    createdAt        DateTime   @default(now())
+    updatedAt        DateTime   @updatedAt
+    @@id([listId, tickerId, userId])
+}

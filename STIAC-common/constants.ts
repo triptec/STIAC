@@ -1,5 +1,3 @@
-const STORAGE_PREFIX = "my_gavle_";
-
 const constants = {
   storage: {
     keys: {

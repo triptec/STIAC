@@ -3,9 +3,10 @@ dotenv.config();
 import { server } from "./src/server";
 import { Ticker } from "../STIAC-common/models/models";
 import c from "../STIAC-common/constants";
-import { getOrCreateUser, getUserLists, getUserTickers } from "./src/users";
-import { createList, getListsTickers } from "./src/lists";
-import { subscribeTicker, addTickerToList, searchTickers } from "./src/tickers";
+import {getOrCreateUserByInstallationId, getUserLists,getUserTickers } from "./src/users";
+import {createList, getListsTickers} from "./src/lists";
+
+import {subscribeTicker, addTickerToList, searchTickers} from "./src/tickers";
 
 const users = {};
 
@@ -56,46 +57,54 @@ async function tickerAdd(ticker_: Ticker, listId_: any, callback) {
 }
 
 async function login(payload, callback) {
-  const socket = this;
-  console.log(payload);
-  const user = await getOrCreateUser(payload.id);
+    const socket = this;
+    console.log(payload);
+    const user = await getOrCreateUserByInstallationId(payload.id) as any;
 
-  if (!users[user.id]) {
-    users[user.id] = user;
-  }
+    if (!users[user.id]) {
+        users[user.id] = user;
+    }
 
-  user.lists = await getUserLists(user.id);
-  console.log("lists", user.lists);
+    user.lists = await getUserLists(user.id);
+    console.log("lists", user.lists);
 
-  user.listsTickers = await getListsTickers(Object.keys(user.lists));
-  console.log("listsTickers", user.listsTickers);
 
-  user.tickers = (await getUserTickers(user.id)) || {};
-  console.log("tickers", user.tickers);
+    /*
+    user.listsTickers = await getListsTickers(Object.keys(user.lists))
+    console.log("listsTickers", user.listsTickers);
+     */
 
-  socket.userId = user.id;
-  users[user.id] = { ...users[user.id], socket: socket };
+    /*
+    user.tickers = await getUserTickers(user.id) || {};
+    console.log("tickers", user.tickers);
+    */
 
-  socket.on(c.events.TICKERS_SEARCH, tickerSearch);
-  socket.on(c.events.TICKERS_ADD, tickerAdd);
-  socket.on(c.events.TICKERS_LIST, tickerList);
-  socket.on(c.events.LISTS_CREATE, listCreate);
+    socket.userId = user.id;
+    users[user.id] = { ...users[user.id], socket: socket };
 
-  socket.emit(c.events.LISTS_LIST, user.lists);
-  socket.emit(c.events.TICKERS_LIST, user.tickers);
-  socket.emit(
-    c.events.LISTS_TICKERS_LIST,
-    /* workaround, socket.io can't serialize Set() */
-    Object.keys(user.listsTickers).reduce((acc, item) => {
-      acc[item] = [...user.listsTickers[item]];
-      return acc;
-    }, {})
-  );
+    socket.on(c.events.TICKERS_SEARCH, tickerSearch);
+    socket.on(c.events.TICKERS_ADD, tickerAdd);
+    socket.on(c.events.TICKERS_LIST, tickerList);
+    socket.on(c.events.LISTS_CREATE, listCreate);
 
-  for (let ticker of Object.values(user.tickers) as Ticker[]) {
-    await subscribeTicker(ticker, null);
-    socket.join(ticker.isin);
-  }
+    /*
+    socket.emit(c.events.LISTS_LIST, user.lists);
+    /*
+    socket.emit(c.events.TICKERS_LIST, user.tickers);
+    socket.emit(
+        c.events.LISTS_TICKERS_LIST,
+        /// workaround, socket.io can't serialize Set()
+        Object.keys(user.listsTickers).reduce((acc, item) => {
+            acc[item] = [...user.listsTickers[item]];
+            return acc;
+        }, {})
+    );
+
+    for (let ticker of Object.values(user.tickers) as Ticker[]) {
+        await subscribeTicker(ticker, null);
+        socket.join(ticker.isin);
+    }
+    */
 
   callback({ status: "ok" });
 }
