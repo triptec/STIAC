@@ -3,7 +3,15 @@ import React, { createContext, useReducer, useEffect } from "react";
 
 import { BackendStateReducer, initialBackendState } from "./Reducer";
 import { RegisterCallbacks } from "./src/api/api";
+import {
+  AvanzaInstrument,
+  AvanzaQuote,
+  AvanzaTicker,
+  Ticker,
+  YahooQuote,
+} from "../STIAC-common/models/models";
 
+import c from "../STIAC-common/constants"
 const Store = ({ children }) => {
   const [backendState, backendDispatch] = useReducer(
     BackendStateReducer,
@@ -12,29 +20,29 @@ const Store = ({ children }) => {
 
   useEffect(() => {
     RegisterCallbacks({
-      "liststickers:set": (data) => {
-        console.log("liststickers:set", data);
-        backendDispatch({ type: "SET_LISTS_TICKERS", payload: data });
+      [c.events.LISTS_TICKERS_LIST]: (data) => {
+        console.log(c.events.LISTS_TICKERS_LIST, data);
+        backendDispatch({ type: c.actions.LISTS_TICKERS_LIST, payload: data });
       },
-      "liststickers:add": (data) => {
-        console.log("liststickers:add", data);
-        backendDispatch({ type: "ADD_LISTS_TICKERS", payload: data });
+      [c.events.LISTS_TICKERS_ADD]: (data) => {
+        console.log(c.events.LISTS_TICKERS_ADD, data);
+        backendDispatch({ type: c.actions.LISTS_TICKERS_ADD, payload: data });
       },
-      "list:set": (data) => {
-        console.log("list:set", data);
-        backendDispatch({ type: "SET_LISTS", payload: data });
+      [c.events.LISTS_LIST]: (data) => {
+        console.log(c.events.LISTS_LIST, data);
+        backendDispatch({ type: c.actions.LISTS_LIST, payload: data });
       },
-      "ticker:set": (data) => {
-        console.log("ticker:set", data);
-        backendDispatch({ type: "SET_TICKERS", payload: data });
+      [c.events.TICKERS_LIST]: (data) => {
+        console.log(c.events.TICKERS_LIST, data);
+        backendDispatch({ type: c.actions.TICKERS_LIST, payload: data });
       },
-      "ticker:add": (data) => {
-        console.log("ticker:add", data);
-        backendDispatch({ type: "ADD_TICKER", payload: data });
+      [c.events.TICKERS_ADD]: (data) => {
+        console.log(c.events.TICKERS_ADD, data);
+        backendDispatch({ type: c.actions.TICKERS_ADD, payload: data });
       },
-      "ticker:update": (data) => {
-        console.log("ticker:update", data);
-        backendDispatch({ type: "UPDATE_TICKER", payload: data });
+      [c.events.TICKERS_UPDATE]: (data) => {
+        console.log(c.events.TICKERS_UPDATE, data);
+        backendDispatch({ type: c.actions.TICKERS_UPDATE, payload: data });
       },
     });
   }, []);

@@ -1,3 +1,5 @@
+import c from '../STIAC-common/constants';
+
 const initialBackendState = {
   tickers: {},
   lists: {},
@@ -7,36 +9,36 @@ const initialBackendState = {
 const BackendStateReducer = (state, action) => {
   console.debug("backend", state, action);
   switch (action.type) {
-    case "RESET_STATE":
+    case c.actions.STATE_RESET:
       return initialBackendState;
-    case "SET_STATE":
+    case c.actions.STATE_SET:
       return {
         ...state,
         ...action.payload,
       };
-    case "SET_LISTS":
+    case c.actions.LISTS_LIST:
       return {
         ...state,
         lists: action.payload,
       };
-    case "SET_LISTS_TICKERS":
+    case c.actions.LISTS_TICKERS_LIST:
       return {
         ...state,
         listsTickers: action.payload,
       };
-    case "ADD_LISTS_TICKERS":
+    case c.actions.LISTS_TICKERS_ADD:
       return {
         ...state,
         listsTickers: {
           ...state.listsTickers,
-          [action.payload.listId]: [
+          [action.payload.listId]: [...new Set([
             ...state.listsTickers[action.payload.listId],
             action.payload.isin,
-          ],
+          ])],
         },
       };
 
-    case "SET_TICKERS":
+    case c.actions.TICKERS_LIST:
       return {
         ...state,
         tickers: Object.keys(action.payload).reduce((acc, key) => {
@@ -48,7 +50,7 @@ const BackendStateReducer = (state, action) => {
           return acc;
         }, {}),
       };
-    case "ADD_TICKER":
+    case c.actions.TICKERS_ADD:
       return {
         ...state,
         tickers: {
@@ -60,7 +62,7 @@ const BackendStateReducer = (state, action) => {
           },
         },
       };
-    case "UPDATE_TICKER":
+    case c.actions.TICKERS_UPDATE:
       return {
         ...state,
         tickers: {

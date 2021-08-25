@@ -1,27 +1,33 @@
 import { io } from "socket.io-client";
 import Constants from "expo-constants";
+import c from "../../../STIAC-common/constants"
 console.log(process.env.BASE_URL);
 const socket = io(process.env.BASE_URL, { transports: ["websocket"] });
 let loggedin = false;
-socket.on("welcome", (args) => {
+socket.on(c.events.WELCOME, (args) => {
   console.log(args);
-  socket.emit("login", { id: Constants.installationId }, (res) => {
+  socket.emit(c.events.LOGIN, { id: Constants.installationId }, (res) => {
     loggedin = true;
   });
 });
 
 async function RegisterCallbacks(callbacks) {
-  socket.on("liststickers:set", callbacks["liststickers:set"]);
-  socket.on("liststickers:add", callbacks["liststickers:add"]);
-  socket.on("list:set", callbacks["list:set"]);
-  socket.on("ticker:set", callbacks["ticker:set"]);
-  socket.on("ticker:add", callbacks["ticker:add"]);
-  socket.on("ticker:update", callbacks["ticker:update"]);
+  for(const event in callbacks) {
+    if (typeof callbacks[event] === 'function') {
+      socket.on(event, callbacks[event]);
+    } else if(Array.isArray(callbacks[event])){
+      callbacks[event].forEach(callback => {
+        if (typeof callback === 'function') {
+          socket.on(event, callback);
+        }
+      });
+    }
+  }
 }
 
 async function TickerSearch(query) {
   const promise = new Promise((resolve, reject) => {
-    socket.emit("ticker:search", { query: query }, (res) => {
+    socket.emit(c.events.TICKERS_SEARCH, { query: query }, (res) => {
       if ("error" in res) {
         reject("error");
       } else {
@@ -35,7 +41,7 @@ async function TickerSearch(query) {
 async function TickerAdd(ticker, listId) {
   console.log("tickerAdd", ticker, listId);
   const promise = new Promise((resolve, reject) => {
-    socket.emit("ticker:add", ticker, listId, (res) => {
+    socket.emit(c.events.TICKERS_ADD, ticker, listId, (res) => {
       if ("error" in res) {
         reject("error");
       } else {
@@ -48,7 +54,7 @@ async function TickerAdd(ticker, listId) {
 
 async function TickerList() {
   const promise = new Promise((resolve, reject) => {
-    socket.emit("ticker:list", null, (res) => {
+    socket.emit(c.events.TICKERS_LIST, null, (res) => {
       if ("error" in res) {
         reject("error");
       } else {

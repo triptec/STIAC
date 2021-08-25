@@ -1,5 +1,5 @@
 {
-  "tickers-<isin(US5949181045)>": {
+  "tickers::<isin(US5949181045)>": {
       "isin": "US5949181045",
       "yahooId": "INVE-B.ST",
       "avanzaId": "1234",
@@ -8,20 +8,25 @@
       "lastPrice": "xxx",
       "lastUpdated": "xxx"
   },
-  "yahoo-tickers-<yahooId(INVE-B.ST)>": "US5949181045",
-  "avanza-tickers-<avanzaId(1234)>": "US5949181045",
-  "users-<userId>": {
+  "yahoo::tickers::<yahooId(INVE-B.ST)>": "US5949181045",
+  "avanza::tickers::<avanzaId(1234)>": "US5949181045",
+  "users::<userId>": {
       "id": "1",
       "displayName": "Andreas Franzén"
   },
-  "lists-<listId>": {
+  "lists::<listId>": {
       "id": "1",
       "displayName": "GG",
       "ownerId": "<userId>"
   },
-  "users-tickers-<userId>": ["<isin>"],
-  "users-lists-<userId>": ["<listId>", "<listId>"],
-  "lists-tickers-<listId>": ["<isin>"],
-  "lists-ro-<listId>": ["<userId>"],
-  "lists-rw-<listId>": ["<userId>"]
+  "users::tickers::<userId>": ["<isin>"],
+  "users::lists::<userId>": ["<listId>", "<listId>"],
+  "lists::tickers::<listId>": ["<isin>"],
+  "lists::tickers::data::<listId>::<isin>": {
+    "addedAt": "xxx",
+    "gav": 28.0,
+    "shares": 1000,
+    "currency": "USD",
+    "priceWhenAdded": 20.1
+  }
 }

@@ -9,11 +9,6 @@ import Store, { BackendContext } from "./Store";
 
 const theme = {
   ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: "tomato",
-    accent: "yellow",
-  },
 };
 
 export default function App() {
@@ -23,7 +18,7 @@ export default function App() {
         <NavigationContainer fallback={<Text>Loading...</Text>}>
           <SafeAreaView style={styles.container}>
             <AppScreen />
-            <StatusBar style="light" />
+            <StatusBar style="auto" />
           </SafeAreaView>
         </NavigationContainer>
       </PaperProvider>

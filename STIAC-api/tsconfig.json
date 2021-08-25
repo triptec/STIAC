@@ -6,10 +6,13 @@
     "noImplicitAny": false,
     "removeComments": true,
     "experimentalDecorators": true,
-    "rootDir": ".",
+    "rootDir": "..",
     "sourceMap": true,
     "listFiles": true,
     "newLine": "LF",
     "noEmitOnError": true
-  }
+  },
+  "references": [
+    { "path": "../STIAC-common" }
+  ],
 }

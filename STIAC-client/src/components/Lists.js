@@ -1,7 +1,7 @@
 import Autocomplete from "react-native-autocomplete-input";
 import React, { useContext, useEffect, useState } from "react";
 import * as Animatable from "react-native-animatable";
-import { useTheme, Card, Title, Paragraph, List } from "react-native-paper";
+import {useTheme, Card, Title, Paragraph, List, Appbar} from "react-native-paper";
 import _sortBy from "lodash.sortby";
 import {
   StyleSheet,
@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { BackendContext } from "../../Store";
 import { useNavigation } from "@react-navigation/native";
+import c from "../../../STIAC-common/constants";
 
 const Lists = () => {
   const [backendState, backendDispatch] = useContext(BackendContext);
@@ -27,7 +28,7 @@ const Lists = () => {
             <Card
               key={list.id}
               onPress={() =>
-                navigation.navigate("List", {
+                navigation.navigate(c.screens.LIST, {
                   list: list,
                 })
               }
@@ -60,6 +61,12 @@ const styles = StyleSheet.create({
   listItem: {
     padding: 5,
     flexDirection: "row",
+  },
+  bottom: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 });
 

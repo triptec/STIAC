@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "rootDir": ".."
+  },
+  "extends": "expo/tsconfig.base",
+  "references": [
+    { "path": "../STIAC-common" }
+  ]
+}
