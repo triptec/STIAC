@@ -1,4 +1,4 @@
-import c from '../STIAC-common/constants';
+import c from "../STIAC-common/constants";
 
 const initialBackendState = {
   tickers: {},
@@ -31,13 +31,22 @@ const BackendStateReducer = (state, action) => {
         ...state,
         listsTickers: {
           ...state.listsTickers,
-          [action.payload.listId]: [...new Set([
-            ...state.listsTickers[action.payload.listId],
-            action.payload.isin,
-          ])],
+          [action.payload.listId]: [
+            ...new Set([
+              ...state.listsTickers[action.payload.listId],
+              action.payload.isin,
+            ]),
+          ],
         },
       };
-
+    case c.actions.LISTS_ADD:
+      return {
+        ...state,
+        lists: {
+          ...state.lists,
+          [action.payload.id]: action.payload,
+        },
+      };
     case c.actions.TICKERS_LIST:
       return {
         ...state,

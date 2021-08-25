@@ -22,7 +22,7 @@
   "users::tickers::<userId>": ["<isin>"],
   "users::lists::<userId>": ["<listId>", "<listId>"],
   "lists::tickers::<listId>": ["<isin>"],
-  "lists::tickers::data::<listId>::<isin>": {
+  "lists::tickers::users::data::<listId>::<isin>::<userId>": {
     "addedAt": "xxx",
     "gav": 28.0,
     "shares": 1000,

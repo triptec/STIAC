@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import Constants from "expo-constants";
-import c from "../../../STIAC-common/constants"
+import c from "../../../STIAC-common/constants";
 console.log(process.env.BASE_URL);
 const socket = io(process.env.BASE_URL, { transports: ["websocket"] });
 let loggedin = false;
@@ -12,12 +12,12 @@ socket.on(c.events.WELCOME, (args) => {
 });
 
 async function RegisterCallbacks(callbacks) {
-  for(const event in callbacks) {
-    if (typeof callbacks[event] === 'function') {
+  for (const event in callbacks) {
+    if (typeof callbacks[event] === "function") {
       socket.on(event, callbacks[event]);
-    } else if(Array.isArray(callbacks[event])){
-      callbacks[event].forEach(callback => {
-        if (typeof callback === 'function') {
+    } else if (Array.isArray(callbacks[event])) {
+      callbacks[event].forEach((callback) => {
+        if (typeof callback === "function") {
           socket.on(event, callback);
         }
       });
@@ -28,6 +28,20 @@ async function RegisterCallbacks(callbacks) {
 async function TickerSearch(query) {
   const promise = new Promise((resolve, reject) => {
     socket.emit(c.events.TICKERS_SEARCH, { query: query }, (res) => {
+      if ("error" in res) {
+        reject("error");
+      } else {
+        resolve(res);
+      }
+    });
+  });
+  return promise;
+}
+
+async function CreateList(list) {
+  const promise = new Promise((resolve, reject) => {
+    socket.emit(c.events.LISTS_CREATE, { list: list }, (res) => {
+      console.log(res);
       if ("error" in res) {
         reject("error");
       } else {
@@ -65,4 +79,4 @@ async function TickerList() {
   return promise;
 }
 
-export { RegisterCallbacks, TickerSearch, TickerAdd, TickerList };
+export { RegisterCallbacks, TickerSearch, TickerAdd, TickerList, CreateList };

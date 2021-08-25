@@ -11,7 +11,7 @@ import {
   YahooQuote,
 } from "../STIAC-common/models/models";
 
-import c from "../STIAC-common/constants"
+import c from "../STIAC-common/constants";
 const Store = ({ children }) => {
   const [backendState, backendDispatch] = useReducer(
     BackendStateReducer,
@@ -31,6 +31,10 @@ const Store = ({ children }) => {
       [c.events.LISTS_LIST]: (data) => {
         console.log(c.events.LISTS_LIST, data);
         backendDispatch({ type: c.actions.LISTS_LIST, payload: data });
+      },
+      [c.events.LISTS_ADD]: (data) => {
+        console.log(c.events.LISTS_ADD, data);
+        backendDispatch({ type: c.actions.LISTS_ADD, payload: data });
       },
       [c.events.TICKERS_LIST]: (data) => {
         console.log(c.events.TICKERS_LIST, data);
