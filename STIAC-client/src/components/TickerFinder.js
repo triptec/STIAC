@@ -13,7 +13,13 @@ import debounce from "lodash.debounce";
 import pDebounce from "p-debounce";
 
 import { TickerSearch, TickerAdd } from "../api/api";
-import { TextInput } from "react-native-paper";
+import {
+  TextInput,
+  Menu,
+  IconButton,
+  Divider,
+  Colors,
+} from "react-native-paper";
 import { BackendContext } from "../../Store";
 
 const tickerSearch = pDebounce(async (query) => {
@@ -28,6 +34,10 @@ const TickerFinder = () => {
   const [hideResults, setHideResults] = useState(true);
   const placeholder = isLoading ? "Loading data..." : "Enter ticker query";
   const [backendState, backendDispatch] = useContext(BackendContext);
+  const [visible, setVisible] = React.useState(null);
+
+  const openMenu = (isin) => setVisible(isin);
+  const closeMenu = () => setVisible(null);
 
   useEffect(() => {
     if (query.length === 0) return;
@@ -55,9 +65,7 @@ const TickerFinder = () => {
             <Pressable
               style={styles.listItem}
               key={ticker.avanzaId}
-              onPress={() =>
-                TickerAdd(ticker, Object.keys(backendState.lists)[0])
-              }
+              onPress={() => {}}
             >
               <View style={{ flex: 0.1 }}>
                 <Text>{ticker.countryCode}</Text>
@@ -75,6 +83,31 @@ const TickerFinder = () => {
                   {ticker.lastPrice} {ticker.currency}
                 </Text>
               </View>
+              <Menu
+                visible={visible === ticker.avanzaId}
+                onDismiss={closeMenu}
+                anchor={
+                  <IconButton
+                    icon="menu"
+                    color={Colors.black}
+                    size={20}
+                    onPress={() => openMenu(ticker.avanzaId)}
+                  />
+                }
+              >
+                {Object.values(backendState.lists).map((list) => {
+                  return (
+                    <Menu.Item
+                      key={list.id}
+                      onPress={() => {
+                        TickerAdd(ticker, list.id);
+                        closeMenu();
+                      }}
+                      title={list.displayName}
+                    />
+                  );
+                })}
+              </Menu>
             </Pressable>
           );
         })}
